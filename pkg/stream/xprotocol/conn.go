@@ -105,6 +105,10 @@ func (sc *streamConn) Dispatch(buf types.IoBuffer) {
 	// decode frames
 	for {
 		if buf.Len() == 0 {
+
+			log.DefaultLogger.Errorf("[stream] [xprotocol] Dispatch buf.Len() == 0, connection %d local addr: %s, remote addr: %s",
+				sc.netConn.ID(), sc.netConn.LocalAddr(), sc.netConn.RemoteAddr())
+
 			return
 		}
 		// 1. get stream-level ctx with bufferCtx
@@ -120,6 +124,8 @@ func (sc *streamConn) Dispatch(buf types.IoBuffer) {
 
 		// 2.1 no enough data, break loop
 		if frame == nil && err == nil {
+			log.DefaultLogger.Errorf("[stream] [xprotocol] Dispatch buf.Len() == 0, connection %d local addr: %s, remote addr: %s",
+				sc.netConn.ID(), sc.netConn.LocalAddr(), sc.netConn.RemoteAddr())
 			return
 		}
 
@@ -340,6 +346,8 @@ func (sc *streamConn) handleResponse(ctx context.Context, frame api.XFrame) {
 	clientStream, ok := sc.clientStreams[requestId]
 	if !ok {
 		sc.clientMutex.Unlock()
+		log.Proxy.Errorf(clientStream.ctx, "[stream] [xprotocol] connection %d receive response, requestId = %v, local addr: %s, remote addr: %s",
+			sc.netConn.ID(), requestId, sc.netConn.LocalAddr(), sc.netConn.RemoteAddr())
 		return
 	}
 

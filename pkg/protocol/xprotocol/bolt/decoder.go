@@ -22,6 +22,7 @@ import (
 	"encoding/binary"
 
 	"mosn.io/api"
+	"mosn.io/mosn/pkg/log"
 	"mosn.io/mosn/pkg/types"
 	"mosn.io/pkg/buffer"
 	"mosn.io/pkg/header"
@@ -113,6 +114,10 @@ func decodeResponse(ctx context.Context, data api.IoBuffer) (cmd interface{}, er
 	contentLen := binary.BigEndian.Uint32(bytes[16:20])
 
 	frameLen := ResponseHeaderLen + int(classLen) + int(headerLen) + int(contentLen)
+	flagSize := 1024 * 1024 * 8
+	if frameLen > flagSize { // 4MB
+		log.Proxy.Errorf(ctx, "[protocol][bolt] [decodeResponse] bolt maybe receive big frame > %d", flagSize)
+	}
 	if bytesLen < frameLen {
 		return
 	}
